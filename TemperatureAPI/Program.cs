@@ -35,7 +35,7 @@ builder.Services.AddCors();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 
-
+// test
 // Add JWT authentication
 // var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 // var secretKey = Encoding.ASCII.GetBytes(jwtSettings["Secret"]);
