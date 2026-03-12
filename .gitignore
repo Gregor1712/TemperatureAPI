@@ -1,0 +1,28 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Visual Studio
+.vs/
+
+## JetBrains Rider
+.idea/
+
+## Node
+node_modules/
+
+## Angular
+client/.angular/
+client/dist/
+
+## Environment
+appsettings.Development.json
+
+## OS
+Thumbs.db
+desktop.ini
+.DS_Store

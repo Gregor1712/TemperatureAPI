@@ -1,0 +1,253 @@
+using Microsoft.EntityFrameworkCore;
+using TemperatureAPI.Interfaces;
+using TemperatureAPI.Mapper;
+using TemperatureAPI.Service;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.AspNetCore.Identity;
+using NSwag;
+using NSwag.Generation.Processors.Security;
+using TemperatureAPI.Data;
+using TemperatureAPI.Entities;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add the JwtSettings section (you’ll add it to appsettings.Development.json) // ???
+builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true);
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<ICsvDataSeeder, CsvDataSeeder>();
+//builder.Services.AddScoped<IUserDataSeeder, UserDataSeeder>();
+
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+builder.Services.AddScoped<ICpuService, CpuService>();
+builder.Services.AddScoped<IServerService, ServerService>();
+
+//builder.Services.AddScoped<IJwtService, JwtService>();
+
+builder.Services.AddCors();
+
+
+builder.Services.AddScoped<ITokenService, TokenService>();
+
+
+// Add JWT authentication
+// var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+// var secretKey = Encoding.ASCII.GetBytes(jwtSettings["Secret"]);
+// builder.Services.AddAuthentication(options =>
+//     {
+//         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+//         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+//     })
+//     .AddJwtBearer(options =>
+//     {
+//         options.RequireHttpsMetadata = false; // set to true in production
+//         options.SaveToken = true;
+//         options.TokenValidationParameters = new TokenValidationParameters
+//         {
+//             ValidateIssuerSigningKey = true,
+//             IssuerSigningKey = new SymmetricSecurityKey(secretKey),
+//             ValidateIssuer = false,
+//             ValidateAudience = false,
+//             ClockSkew = TimeSpan.Zero
+//         };
+//     });
+
+// builder.Services.AddCors(options =>
+// {
+//     options.AddPolicy("AllowAngularApp",
+//         policyBuilder =>
+//         {
+//             policyBuilder.WithOrigins("http://localhost:4200, https://localhost:4200")
+//                 .AllowAnyHeader()
+//                 .AllowAnyMethod();
+//         });
+// });
+
+
+//builder.Services.AddAutoMapper(cfg => {}, typeof(AutoMapperProfiles));
+builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
+
+
+builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddOpenApiDocument(config =>
+{
+    config.PostProcess = document =>
+    {
+        document.Info.Title = "Temperature API";
+        document.Info.Version = "v1";
+    };
+    
+    config.AddSecurity("Bearer", Enumerable.Empty<string>(), new OpenApiSecurityScheme
+    {
+        Type = OpenApiSecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT", 
+        In = OpenApiSecurityApiKeyLocation.Header,
+        Description = "Type into the textbox: Bearer {your JWT token}."
+    });
+
+    config.OperationProcessors.Add(new AspNetCoreOperationSecurityScopeProcessor("Bearer"));
+});
+
+
+builder.Services.AddIdentityCore<AppUser>(opt =>
+    {
+        opt.Password.RequireNonAlphanumeric = false;
+        opt.User.RequireUniqueEmail = true;
+    })
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var tokenKey = builder.Configuration["TokenKey"]
+                       ?? throw new Exception("Token key not found - Program.cs");
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenKey)),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+
+                var path = context.HttpContext.Request.Path;
+                //if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                if (!string.IsNullOrEmpty(accessToken))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
+    });
+
+
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"))
+    .AddPolicy("RequireUserRole", policy => policy.RequireRole("Admin", "User"));
+
+
+var app = builder.Build();
+
+
+app.UseCors(x => x
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .AllowCredentials()
+    .WithOrigins("http://localhost:4200", "https://localhost:4200"));
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseOpenApi();      
+    app.UseSwaggerUi();    
+}
+
+// Use authentication before routing
+//app.UseAuthentication();   // <‑‑ NEW LINE
+//app.UseAuthorization();
+
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+
+
+//app.UseDefaultFiles();
+//app.UseStaticFiles();
+
+
+app.UseHttpsRedirection();
+
+//app.UseCors("AllowAngularApp");
+
+app.MapControllers();
+
+using var scope = app.Services.CreateScope();
+var services = scope.ServiceProvider;
+try
+{
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    var userManager = services.GetRequiredService<UserManager<AppUser>>();
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    await context.Database.MigrateAsync();
+    //await context.Connections.ExecuteDeleteAsync();
+    await SeedUsers.SeedUsersData(userManager, roleManager);
+}
+catch (Exception ex)
+{
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "An error occured during migration");
+}
+
+app.Run();
+
+// if (!app.Environment.IsEnvironment("NSwag"))
+// {
+//     using var scope = app.Services.CreateScope();
+//     var seeder = scope.ServiceProvider.GetRequiredService<ICsvDataSeeder>();
+//     await seeder.SeedDataAsync();
+// }
+
+// Seed data on startup
+// using (var scope = app.Services.CreateScope())
+// {
+//     var seeder = scope.ServiceProvider.GetRequiredService<ICsvDataSeeder>();
+//     await seeder.SeedDataAsync();
+// }
+
+// Configure the HTTP request pipeline.
+// if (app.Environment.IsDevelopment())
+// {
+//     //app.MapOpenApi();
+//     //app.MapScalarApiReference();
+//     //app.UseSwagger();
+//     //app.UseSwaggerUI();
+// }
+//
+// app.UseHttpsRedirection();
+// app.UseAuthorization();
+// app.MapControllers();
+//
+// //app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+// app.Run();
+
+
+// ctrl+shift+/
+
+/*# Install EF Core tools (if not already installed)
+dotnet tool install --global dotnet-ef
+
+# Add migration
+dotnet ef migrations add InitialCreate
+
+# Update database
+    dotnet ef database update
+
+# If you need to remove the last migration
+    dotnet ef migrations remove*/
+    
+    
+// dotnet ef migrations add JwtAuthTables   // creates migration files
+// dotnet ef database update                 // applies them
+    
