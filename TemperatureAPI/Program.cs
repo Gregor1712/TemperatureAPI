@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Identity;
+using NLog;
+using NLog.Web;
 using NSwag;
 using NSwag.Generation.Processors.Security;
 using Polly;
@@ -13,7 +15,15 @@ using Polly.Extensions.Http;
 using TemperatureAPI.Data;
 using TemperatureAPI.Entities;
 
+var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+
+try
+{
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.ClearProviders();
+builder.Host.UseNLog();
 
 builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true);
 
@@ -154,11 +164,21 @@ try
 }
 catch (Exception ex)
 {
-    var logger = services.GetRequiredService<ILogger<Program>>();
-    logger.LogError(ex, "An error occured during migration");
+    logger.Error(ex, "An error occured during migration");
 }
 
 app.Run();
+
+}
+catch (Exception ex)
+{
+    logger.Error(ex, "Stopped program because of exception");
+    throw;
+}
+finally
+{
+    LogManager.Shutdown();
+}
 
 
 static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()

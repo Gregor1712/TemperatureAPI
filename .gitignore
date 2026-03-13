@@ -22,6 +22,9 @@ client/dist/
 ## Environment
 appsettings.Development.json
 
+## Logs
+logs/
+
 ## OS
 Thumbs.db
 desktop.ini
