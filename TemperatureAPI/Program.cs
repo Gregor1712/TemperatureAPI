@@ -13,64 +13,19 @@ using TemperatureAPI.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add the JwtSettings section (you’ll add it to appsettings.Development.json) // ???
 builder.Configuration.AddJsonFile("appsettings.Development.json", optional: true);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<ICsvDataSeeder, CsvDataSeeder>();
-//builder.Services.AddScoped<IUserDataSeeder, UserDataSeeder>();
-
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-builder.Services.AddScoped<ICpuService, CpuService>();
-builder.Services.AddScoped<IServerService, ServerService>();
-
-//builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddSingleton<ITemperatureService, TemperatureService>();
 
 builder.Services.AddCors();
 
-
 builder.Services.AddScoped<ITokenService, TokenService>();
 
-// test
-// Add JWT authentication
-// var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-// var secretKey = Encoding.ASCII.GetBytes(jwtSettings["Secret"]);
-// builder.Services.AddAuthentication(options =>
-//     {
-//         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-//         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-//     })
-//     .AddJwtBearer(options =>
-//     {
-//         options.RequireHttpsMetadata = false; // set to true in production
-//         options.SaveToken = true;
-//         options.TokenValidationParameters = new TokenValidationParameters
-//         {
-//             ValidateIssuerSigningKey = true,
-//             IssuerSigningKey = new SymmetricSecurityKey(secretKey),
-//             ValidateIssuer = false,
-//             ValidateAudience = false,
-//             ClockSkew = TimeSpan.Zero
-//         };
-//     });
-
-// builder.Services.AddCors(options =>
-// {
-//     options.AddPolicy("AllowAngularApp",
-//         policyBuilder =>
-//         {
-//             policyBuilder.WithOrigins("http://localhost:4200, https://localhost:4200")
-//                 .AllowAnyHeader()
-//                 .AllowAnyMethod();
-//         });
-// });
-
-
-//builder.Services.AddAutoMapper(cfg => {}, typeof(AutoMapperProfiles));
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
 builder.Services.AddControllers()
@@ -142,14 +97,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"))
     .AddPolicy("RequireUserRole", policy => policy.RequireRole("Admin", "User"));
 
-
 var app = builder.Build();
-
 
 app.UseCors(x => x
     .AllowAnyHeader()
@@ -163,22 +115,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUi();    
 }
 
-// Use authentication before routing
-//app.UseAuthentication();   // <‑‑ NEW LINE
-//app.UseAuthorization();
-
-
 app.UseAuthentication();
 app.UseAuthorization();
-
-
-
 //app.UseDefaultFiles();
 //app.UseStaticFiles();
-
-
 app.UseHttpsRedirection();
-
 //app.UseCors("AllowAngularApp");
 
 app.MapControllers();
@@ -201,37 +142,6 @@ catch (Exception ex)
 }
 
 app.Run();
-
-// if (!app.Environment.IsEnvironment("NSwag"))
-// {
-//     using var scope = app.Services.CreateScope();
-//     var seeder = scope.ServiceProvider.GetRequiredService<ICsvDataSeeder>();
-//     await seeder.SeedDataAsync();
-// }
-
-// Seed data on startup
-// using (var scope = app.Services.CreateScope())
-// {
-//     var seeder = scope.ServiceProvider.GetRequiredService<ICsvDataSeeder>();
-//     await seeder.SeedDataAsync();
-// }
-
-// Configure the HTTP request pipeline.
-// if (app.Environment.IsDevelopment())
-// {
-//     //app.MapOpenApi();
-//     //app.MapScalarApiReference();
-//     //app.UseSwagger();
-//     //app.UseSwaggerUI();
-// }
-//
-// app.UseHttpsRedirection();
-// app.UseAuthorization();
-// app.MapControllers();
-//
-// //app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
-// app.Run();
-
 
 // ctrl+shift+/
 

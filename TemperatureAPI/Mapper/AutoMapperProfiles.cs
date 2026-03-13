@@ -1,6 +1,7 @@
 using AutoMapper;
-using TemperatureAPI.Dbo;
+using TemperatureAPI.Mapper;
 using TemperatureAPI.DTO;
+using TemperatureAPI.Models;
 
 namespace TemperatureAPI.Mapper;
 
@@ -8,22 +9,7 @@ public class AutoMapperProfiles : Profile
 {
     public AutoMapperProfiles()
     {
-        CreateMap<CpuDBO, CpuDTO>();
-        CreateMap<CpuDTO, CpuDBO>();
-
-        CreateMap<ManufacturerDBO, ManufacturerDTO>();
-        CreateMap<ManufacturerDTO, ManufacturerDBO>();
-
-        // CreateMap<RoleDBO, RoleDto>();
-        // CreateMap<RoleDto, RoleDBO>();
-
-        //.ForMember(x => x.Role, opt => opt.);
-
-        //.ForMember(m => m.Role, opt => opt.Ignore())
-        //.ForAllMembers(x => x.Role.Users, opt => opt.Ignore());
-        //CreateMap<UserDto, UserDBO>();
-
-        //Mapper.Map<OrderLine, OrderLineDTO>()
-        //    .ForMember(m => m.Order, opt => opt.Ignore());
+        CreateMap<TemperatureHistory, TemperatureHistoryDto>();
+        CreateMap<TemperatureHistoryDto, TemperatureHistory>();
     }
 }

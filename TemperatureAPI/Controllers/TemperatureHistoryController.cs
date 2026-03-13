@@ -1,23 +1,23 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TemperatureAPI.Dbo;
 using TemperatureAPI.DTO;
 using TemperatureAPI.Interfaces;
+using TemperatureAPI.Models;
 using TemperatureAPI.RequestHelpers;
 using TemperatureAPI.Specifications;
 
 namespace TemperatureAPI.Controllers;
 
-public class ProductsController(IUnitOfWork unit, IMapper mapper) : BaseApiController(mapper)
+public class TemperatureHistoryController(IUnitOfWork unit, IMapper mapper) : BaseApiController(mapper)
 {
     [Authorize(Policy = "RequireAdminRole")]
     [HttpGet]
-    public async Task<ActionResult<Pagination<CpuDTO>>> GetProducts([FromQuery] ProductSpecParams productParams)
+    public async Task<ActionResult<Pagination<TemperatureHistoryDto>>> GetProducts([FromQuery] TemperatureHistorySpecParams historyParams)
     {
-        var spec = new ProductSpecification(productParams);
-        return await CreatePagedResultDto<CpuDBO, CpuDTO>(
-            unit.Repository<CpuDBO>(), spec, productParams.PageIndex, productParams.PageSize);
+        var spec = new TemperatureHistorySpecification(historyParams);
+        return await CreatePagedResultDto<TemperatureHistory, TemperatureHistoryDto>(
+            unit.Repository<TemperatureHistory>(), spec, historyParams.PageIndex, historyParams.PageSize);
     }
     
     //[Cached(100000)]
@@ -36,15 +36,3 @@ public class ProductsController(IUnitOfWork unit, IMapper mapper) : BaseApiContr
 //     } 
 
 }
-
-// public class ProductsController(IUnitOfWork unit, IMapper mapper) 
-//     : BaseApiController(mapper)
-// {
-//     [HttpGet]
-//     public async Task<ActionResult<Pagination<CpuDTO>>> GetProducts([FromQuery] ProductSpecParams productParams)
-//     {
-//         var spec = new ProductSpecification(productParams);
-//         return await CreatePagedResultDto<CpuDBO, CpuDTO>(
-//             unit.Repository<CpuDBO>(), spec, productParams.PageIndex, productParams.PageSize);
-//     }
-// }
