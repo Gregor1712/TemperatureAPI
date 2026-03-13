@@ -15,7 +15,7 @@ using Polly.Extensions.Http;
 using TemperatureAPI.Data;
 using TemperatureAPI.Entities;
 
-var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+var logger = LogManager.Setup().LoadConfigurationFromFile("nlog.config").GetCurrentClassLogger();
 
 try
 {

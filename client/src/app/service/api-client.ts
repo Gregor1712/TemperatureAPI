@@ -17,247 +17,6 @@ export const API_BASE_URL = new InjectionToken<string>('API_BASE_URL');
 @Injectable({
     providedIn: 'root'
 })
-export class CpuClient {
-    private http: HttpClient;
-    private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
-        this.http = http;
-        this.baseUrl = baseUrl ?? "";
-    }
-
-    getCPUs(): Observable<CpuDTO[]> {
-        let url_ = this.baseUrl + "/api/cpus";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_ : any = {
-            observe: "response",
-            responseType: "blob",
-            headers: new HttpHeaders({
-                "Accept": "application/json"
-            })
-        };
-
-        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
-            return this.processGetCPUs(response_);
-        })).pipe(_observableCatch((response_: any) => {
-            if (response_ instanceof HttpResponseBase) {
-                try {
-                    return this.processGetCPUs(response_ as any);
-                } catch (e) {
-                    return _observableThrow(e) as any as Observable<CpuDTO[]>;
-                }
-            } else
-                return _observableThrow(response_) as any as Observable<CpuDTO[]>;
-        }));
-    }
-
-    protected processGetCPUs(response: HttpResponseBase): Observable<CpuDTO[]> {
-        const status = response.status;
-        const responseBlob =
-            response instanceof HttpResponse ? response.body :
-            (response as any).error instanceof Blob ? (response as any).error : undefined;
-
-        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
-        if (status === 200) {
-            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(CpuDTO.fromJS(item));
-            }
-            else {
-                result200 = null as any;
-            }
-            return _observableOf(result200);
-            }));
-        } else if (status !== 200 && status !== 204) {
-            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            }));
-        }
-        return _observableOf(null as any);
-    }
-}
-
-@Injectable({
-    providedIn: 'root'
-})
-export class ManufacturersClient {
-    private http: HttpClient;
-    private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
-        this.http = http;
-        this.baseUrl = baseUrl ?? "";
-    }
-
-    getManufacturers(): Observable<ManufacturerDBO[]> {
-        let url_ = this.baseUrl + "/api/Manufacturers";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_ : any = {
-            observe: "response",
-            responseType: "blob",
-            headers: new HttpHeaders({
-                "Accept": "application/json"
-            })
-        };
-
-        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
-            return this.processGetManufacturers(response_);
-        })).pipe(_observableCatch((response_: any) => {
-            if (response_ instanceof HttpResponseBase) {
-                try {
-                    return this.processGetManufacturers(response_ as any);
-                } catch (e) {
-                    return _observableThrow(e) as any as Observable<ManufacturerDBO[]>;
-                }
-            } else
-                return _observableThrow(response_) as any as Observable<ManufacturerDBO[]>;
-        }));
-    }
-
-    protected processGetManufacturers(response: HttpResponseBase): Observable<ManufacturerDBO[]> {
-        const status = response.status;
-        const responseBlob =
-            response instanceof HttpResponse ? response.body :
-            (response as any).error instanceof Blob ? (response as any).error : undefined;
-
-        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
-        if (status === 200) {
-            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(ManufacturerDBO.fromJS(item));
-            }
-            else {
-                result200 = null as any;
-            }
-            return _observableOf(result200);
-            }));
-        } else if (status !== 200 && status !== 204) {
-            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            }));
-        }
-        return _observableOf(null as any);
-    }
-
-    createManufacturer(manufacturer: ManufacturerDBO): Observable<ManufacturerDBO> {
-        let url_ = this.baseUrl + "/api/Manufacturers";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(manufacturer);
-
-        let options_ : any = {
-            body: content_,
-            observe: "response",
-            responseType: "blob",
-            headers: new HttpHeaders({
-                "Content-Type": "application/json",
-                "Accept": "application/json"
-            })
-        };
-
-        return this.http.request("post", url_, options_).pipe(_observableMergeMap((response_ : any) => {
-            return this.processCreateManufacturer(response_);
-        })).pipe(_observableCatch((response_: any) => {
-            if (response_ instanceof HttpResponseBase) {
-                try {
-                    return this.processCreateManufacturer(response_ as any);
-                } catch (e) {
-                    return _observableThrow(e) as any as Observable<ManufacturerDBO>;
-                }
-            } else
-                return _observableThrow(response_) as any as Observable<ManufacturerDBO>;
-        }));
-    }
-
-    protected processCreateManufacturer(response: HttpResponseBase): Observable<ManufacturerDBO> {
-        const status = response.status;
-        const responseBlob =
-            response instanceof HttpResponse ? response.body :
-            (response as any).error instanceof Blob ? (response as any).error : undefined;
-
-        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
-        if (status === 200) {
-            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = ManufacturerDBO.fromJS(resultData200);
-            return _observableOf(result200);
-            }));
-        } else if (status !== 200 && status !== 204) {
-            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            }));
-        }
-        return _observableOf(null as any);
-    }
-
-    getManufacturer(id: number): Observable<ManufacturerDBO> {
-        let url_ = this.baseUrl + "/api/Manufacturers/{id}";
-        if (id === undefined || id === null)
-            throw new globalThis.Error("The parameter 'id' must be defined.");
-        url_ = url_.replace("{id}", encodeURIComponent("" + id));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_ : any = {
-            observe: "response",
-            responseType: "blob",
-            headers: new HttpHeaders({
-                "Accept": "application/json"
-            })
-        };
-
-        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
-            return this.processGetManufacturer(response_);
-        })).pipe(_observableCatch((response_: any) => {
-            if (response_ instanceof HttpResponseBase) {
-                try {
-                    return this.processGetManufacturer(response_ as any);
-                } catch (e) {
-                    return _observableThrow(e) as any as Observable<ManufacturerDBO>;
-                }
-            } else
-                return _observableThrow(response_) as any as Observable<ManufacturerDBO>;
-        }));
-    }
-
-    protected processGetManufacturer(response: HttpResponseBase): Observable<ManufacturerDBO> {
-        const status = response.status;
-        const responseBlob =
-            response instanceof HttpResponse ? response.body :
-            (response as any).error instanceof Blob ? (response as any).error : undefined;
-
-        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
-        if (status === 200) {
-            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = ManufacturerDBO.fromJS(resultData200);
-            return _observableOf(result200);
-            }));
-        } else if (status !== 200 && status !== 204) {
-            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            }));
-        }
-        return _observableOf(null as any);
-    }
-}
-
-@Injectable({
-    providedIn: 'root'
-})
 export class AccountClient {
     private http: HttpClient;
     private baseUrl: string;
@@ -476,7 +235,7 @@ export class AccountClient {
 @Injectable({
     providedIn: 'root'
 })
-export class ProductsClient {
+export class TemperatureClient {
     private http: HttpClient;
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
@@ -486,14 +245,79 @@ export class ProductsClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    getProducts(name?: string | null | undefined, socket?: string | null | undefined, cores?: number | null | undefined, sort?: string | null | undefined, search?: string | undefined, pageIndex?: number | undefined, pageSize?: number | undefined): Observable<PaginationOfCpuDTO> {
-        let url_ = this.baseUrl + "/api/Products?";
-        if (name !== undefined && name !== null)
-            url_ += "Name=" + encodeURIComponent("" + name) + "&";
-        if (socket !== undefined && socket !== null)
-            url_ += "Socket=" + encodeURIComponent("" + socket) + "&";
-        if (cores !== undefined && cores !== null)
-            url_ += "Cores=" + encodeURIComponent("" + cores) + "&";
+    getTemperature(city: string): Observable<TemperatureDto> {
+        let url_ = this.baseUrl + "/api/Temperature/{city}";
+        if (city === undefined || city === null)
+            throw new globalThis.Error("The parameter 'city' must be defined.");
+        url_ = url_.replace("{city}", encodeURIComponent("" + city));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_ : any = {
+            observe: "response",
+            responseType: "blob",
+            headers: new HttpHeaders({
+                "Accept": "application/json"
+            })
+        };
+
+        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
+            return this.processGetTemperature(response_);
+        })).pipe(_observableCatch((response_: any) => {
+            if (response_ instanceof HttpResponseBase) {
+                try {
+                    return this.processGetTemperature(response_ as any);
+                } catch (e) {
+                    return _observableThrow(e) as any as Observable<TemperatureDto>;
+                }
+            } else
+                return _observableThrow(response_) as any as Observable<TemperatureDto>;
+        }));
+    }
+
+    protected processGetTemperature(response: HttpResponseBase): Observable<TemperatureDto> {
+        const status = response.status;
+        const responseBlob =
+            response instanceof HttpResponse ? response.body :
+            (response as any).error instanceof Blob ? (response as any).error : undefined;
+
+        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
+        if (status === 200) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = TemperatureDto.fromJS(resultData200);
+            return _observableOf(result200);
+            }));
+        } else if (status !== 200 && status !== 204) {
+            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            }));
+        }
+        return _observableOf(null as any);
+    }
+}
+
+@Injectable({
+    providedIn: 'root'
+})
+export class TemperatureHistoryClient {
+    private http: HttpClient;
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
+        this.http = http;
+        this.baseUrl = baseUrl ?? "";
+    }
+
+    getProducts(city?: string | null | undefined, temperatureC?: number | null | undefined, measuredAtUtc?: string | null | undefined, sort?: string | null | undefined, search?: string | undefined, pageIndex?: number | undefined, pageSize?: number | undefined): Observable<PaginationOfTemperatureHistoryDto> {
+        let url_ = this.baseUrl + "/api/TemperatureHistory?";
+        if (city !== undefined && city !== null)
+            url_ += "City=" + encodeURIComponent("" + city) + "&";
+        if (temperatureC !== undefined && temperatureC !== null)
+            url_ += "TemperatureC=" + encodeURIComponent("" + temperatureC) + "&";
+        if (measuredAtUtc !== undefined && measuredAtUtc !== null)
+            url_ += "MeasuredAtUtc=" + encodeURIComponent("" + measuredAtUtc) + "&";
         if (sort !== undefined && sort !== null)
             url_ += "Sort=" + encodeURIComponent("" + sort) + "&";
         if (search === null)
@@ -525,14 +349,14 @@ export class ProductsClient {
                 try {
                     return this.processGetProducts(response_ as any);
                 } catch (e) {
-                    return _observableThrow(e) as any as Observable<PaginationOfCpuDTO>;
+                    return _observableThrow(e) as any as Observable<PaginationOfTemperatureHistoryDto>;
                 }
             } else
-                return _observableThrow(response_) as any as Observable<PaginationOfCpuDTO>;
+                return _observableThrow(response_) as any as Observable<PaginationOfTemperatureHistoryDto>;
         }));
     }
 
-    protected processGetProducts(response: HttpResponseBase): Observable<PaginationOfCpuDTO> {
+    protected processGetProducts(response: HttpResponseBase): Observable<PaginationOfTemperatureHistoryDto> {
         const status = response.status;
         const responseBlob =
             response instanceof HttpResponse ? response.body :
@@ -543,7 +367,7 @@ export class ProductsClient {
             return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = PaginationOfCpuDTO.fromJS(resultData200);
+            result200 = PaginationOfTemperatureHistoryDto.fromJS(resultData200);
             return _observableOf(result200);
             }));
         } else if (status !== 200 && status !== 204) {
@@ -553,276 +377,6 @@ export class ProductsClient {
         }
         return _observableOf(null as any);
     }
-}
-
-@Injectable({
-    providedIn: 'root'
-})
-export class WeatherForecastClient {
-    private http: HttpClient;
-    private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(@Inject(HttpClient) http: HttpClient, @Optional() @Inject(API_BASE_URL) baseUrl?: string) {
-        this.http = http;
-        this.baseUrl = baseUrl ?? "";
-    }
-
-    get(): Observable<WeatherForecast[]> {
-        let url_ = this.baseUrl + "/WeatherForecast";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_ : any = {
-            observe: "response",
-            responseType: "blob",
-            headers: new HttpHeaders({
-                "Accept": "application/json"
-            })
-        };
-
-        return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
-            return this.processGet(response_);
-        })).pipe(_observableCatch((response_: any) => {
-            if (response_ instanceof HttpResponseBase) {
-                try {
-                    return this.processGet(response_ as any);
-                } catch (e) {
-                    return _observableThrow(e) as any as Observable<WeatherForecast[]>;
-                }
-            } else
-                return _observableThrow(response_) as any as Observable<WeatherForecast[]>;
-        }));
-    }
-
-    protected processGet(response: HttpResponseBase): Observable<WeatherForecast[]> {
-        const status = response.status;
-        const responseBlob =
-            response instanceof HttpResponse ? response.body :
-            (response as any).error instanceof Blob ? (response as any).error : undefined;
-
-        let _headers: any = {}; if (response.headers) { for (let key of response.headers.keys()) { _headers[key] = response.headers.get(key); }}
-        if (status === 200) {
-            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(WeatherForecast.fromJS(item));
-            }
-            else {
-                result200 = null as any;
-            }
-            return _observableOf(result200);
-            }));
-        } else if (status !== 200 && status !== 204) {
-            return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            }));
-        }
-        return _observableOf(null as any);
-    }
-}
-
-export class BaseEntity implements IBaseEntity {
-    id?: number;
-
-    constructor(data?: IBaseEntity) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"];
-        }
-    }
-
-    static fromJS(data: any): BaseEntity {
-        data = typeof data === 'object' ? data : {};
-        let result = new BaseEntity();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        return data;
-    }
-}
-
-export interface IBaseEntity {
-    id?: number;
-}
-
-export class CpuDTO extends BaseEntity implements ICpuDTO {
-    name?: string;
-    cores?: number;
-    threads?: number;
-    baseClock?: number;
-    boostClock?: number;
-    tdp?: number;
-    socket?: string;
-    releaseYear?: number;
-    price?: number;
-    description?: string;
-    manufacturerDboId?: number;
-    manufacturer?: ManufacturerDTO;
-
-    constructor(data?: ICpuDTO) {
-        super(data);
-    }
-
-    override init(_data?: any) {
-        super.init(_data);
-        if (_data) {
-            this.name = _data["name"];
-            this.cores = _data["cores"];
-            this.threads = _data["threads"];
-            this.baseClock = _data["baseClock"];
-            this.boostClock = _data["boostClock"];
-            this.tdp = _data["tdp"];
-            this.socket = _data["socket"];
-            this.releaseYear = _data["releaseYear"];
-            this.price = _data["price"];
-            this.description = _data["description"];
-            this.manufacturerDboId = _data["manufacturerDboId"];
-            this.manufacturer = _data["manufacturer"] ? ManufacturerDTO.fromJS(_data["manufacturer"]) : undefined as any;
-        }
-    }
-
-    static override fromJS(data: any): CpuDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new CpuDTO();
-        result.init(data);
-        return result;
-    }
-
-    override toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["name"] = this.name;
-        data["cores"] = this.cores;
-        data["threads"] = this.threads;
-        data["baseClock"] = this.baseClock;
-        data["boostClock"] = this.boostClock;
-        data["tdp"] = this.tdp;
-        data["socket"] = this.socket;
-        data["releaseYear"] = this.releaseYear;
-        data["price"] = this.price;
-        data["description"] = this.description;
-        data["manufacturerDboId"] = this.manufacturerDboId;
-        data["manufacturer"] = this.manufacturer ? this.manufacturer.toJSON() : undefined as any;
-        super.toJSON(data);
-        return data;
-    }
-}
-
-export interface ICpuDTO extends IBaseEntity {
-    name?: string;
-    cores?: number;
-    threads?: number;
-    baseClock?: number;
-    boostClock?: number;
-    tdp?: number;
-    socket?: string;
-    releaseYear?: number;
-    price?: number;
-    description?: string;
-    manufacturerDboId?: number;
-    manufacturer?: ManufacturerDTO;
-}
-
-export class ManufacturerDTO implements IManufacturerDTO {
-    id?: number;
-    name?: string;
-    description?: string;
-
-    constructor(data?: IManufacturerDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"];
-            this.name = _data["name"];
-            this.description = _data["description"];
-        }
-    }
-
-    static fromJS(data: any): ManufacturerDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new ManufacturerDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["name"] = this.name;
-        data["description"] = this.description;
-        return data;
-    }
-}
-
-export interface IManufacturerDTO {
-    id?: number;
-    name?: string;
-    description?: string;
-}
-
-export class ManufacturerDBO implements IManufacturerDBO {
-    id?: number;
-    name?: string;
-    description?: string;
-
-    constructor(data?: IManufacturerDBO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"];
-            this.name = _data["name"];
-            this.description = _data["description"];
-        }
-    }
-
-    static fromJS(data: any): ManufacturerDBO {
-        data = typeof data === 'object' ? data : {};
-        let result = new ManufacturerDBO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["name"] = this.name;
-        data["description"] = this.description;
-        return data;
-    }
-}
-
-export interface IManufacturerDBO {
-    id?: number;
-    name?: string;
-    description?: string;
 }
 
 export class UserDto implements IUserDto {
@@ -830,7 +384,7 @@ export class UserDto implements IUserDto {
     email?: string;
     displayName?: string;
     token?: string;
-    roles?: string[];
+    roles?: (string | undefined)[] | undefined;
 
     constructor(data?: IUserDto) {
         if (data) {
@@ -882,7 +436,7 @@ export interface IUserDto {
     email?: string;
     displayName?: string;
     token?: string;
-    roles?: string[];
+    roles?: (string | undefined)[] | undefined;
 }
 
 export class RegisterDto implements IRegisterDto {
@@ -969,13 +523,57 @@ export interface ILoginDto {
     password?: string;
 }
 
-export class PaginationOfCpuDTO implements IPaginationOfCpuDTO {
+export class TemperatureDto implements ITemperatureDto {
+    city?: string;
+    temperatureC?: number;
+    measuredAtUtc?: string;
+
+    constructor(data?: ITemperatureDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.city = _data["city"];
+            this.temperatureC = _data["temperatureC"];
+            this.measuredAtUtc = _data["measuredAtUtc"];
+        }
+    }
+
+    static fromJS(data: any): TemperatureDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new TemperatureDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["city"] = this.city;
+        data["temperatureC"] = this.temperatureC;
+        data["measuredAtUtc"] = this.measuredAtUtc;
+        return data;
+    }
+}
+
+export interface ITemperatureDto {
+    city?: string;
+    temperatureC?: number;
+    measuredAtUtc?: string;
+}
+
+export class PaginationOfTemperatureHistoryDto implements IPaginationOfTemperatureHistoryDto {
     pageIndex?: number;
     pageSize?: number;
     count?: number;
-    data?: CpuDTO[];
+    data?: TemperatureHistoryDto[];
 
-    constructor(data?: IPaginationOfCpuDTO) {
+    constructor(data?: IPaginationOfTemperatureHistoryDto) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -992,14 +590,14 @@ export class PaginationOfCpuDTO implements IPaginationOfCpuDTO {
             if (Array.isArray(_data["data"])) {
                 this.data = [] as any;
                 for (let item of _data["data"])
-                    this.data!.push(CpuDTO.fromJS(item));
+                    this.data!.push(TemperatureHistoryDto.fromJS(item));
             }
         }
     }
 
-    static fromJS(data: any): PaginationOfCpuDTO {
+    static fromJS(data: any): PaginationOfTemperatureHistoryDto {
         data = typeof data === 'object' ? data : {};
-        let result = new PaginationOfCpuDTO();
+        let result = new PaginationOfTemperatureHistoryDto();
         result.init(data);
         return result;
     }
@@ -1018,20 +616,17 @@ export class PaginationOfCpuDTO implements IPaginationOfCpuDTO {
     }
 }
 
-export interface IPaginationOfCpuDTO {
+export interface IPaginationOfTemperatureHistoryDto {
     pageIndex?: number;
     pageSize?: number;
     count?: number;
-    data?: CpuDTO[];
+    data?: TemperatureHistoryDto[];
 }
 
-export class WeatherForecast implements IWeatherForecast {
-    date?: string;
-    temperatureC?: number;
-    temperatureF?: number;
-    summary?: string | undefined;
+export class BaseEntity implements IBaseEntity {
+    id?: number;
 
-    constructor(data?: IWeatherForecast) {
+    constructor(data?: IBaseEntity) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -1042,35 +637,67 @@ export class WeatherForecast implements IWeatherForecast {
 
     init(_data?: any) {
         if (_data) {
-            this.date = _data["date"];
-            this.temperatureC = _data["temperatureC"];
-            this.temperatureF = _data["temperatureF"];
-            this.summary = _data["summary"];
+            this.id = _data["id"];
         }
     }
 
-    static fromJS(data: any): WeatherForecast {
+    static fromJS(data: any): BaseEntity {
         data = typeof data === 'object' ? data : {};
-        let result = new WeatherForecast();
+        let result = new BaseEntity();
         result.init(data);
         return result;
     }
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["date"] = this.date;
-        data["temperatureC"] = this.temperatureC;
-        data["temperatureF"] = this.temperatureF;
-        data["summary"] = this.summary;
+        data["id"] = this.id;
         return data;
     }
 }
 
-export interface IWeatherForecast {
-    date?: string;
+export interface IBaseEntity {
+    id?: number;
+}
+
+export class TemperatureHistoryDto extends BaseEntity implements ITemperatureHistoryDto {
+    city?: string;
     temperatureC?: number;
-    temperatureF?: number;
-    summary?: string | undefined;
+    measuredAtUtc?: string;
+
+    constructor(data?: ITemperatureHistoryDto) {
+        super(data);
+    }
+
+    override init(_data?: any) {
+        super.init(_data);
+        if (_data) {
+            this.city = _data["city"];
+            this.temperatureC = _data["temperatureC"];
+            this.measuredAtUtc = _data["measuredAtUtc"];
+        }
+    }
+
+    static override fromJS(data: any): TemperatureHistoryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new TemperatureHistoryDto();
+        result.init(data);
+        return result;
+    }
+
+    override toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["city"] = this.city;
+        data["temperatureC"] = this.temperatureC;
+        data["measuredAtUtc"] = this.measuredAtUtc;
+        super.toJSON(data);
+        return data;
+    }
+}
+
+export interface ITemperatureHistoryDto extends IBaseEntity {
+    city?: string;
+    temperatureC?: number;
+    measuredAtUtc?: string;
 }
 
 export interface FileResponse {

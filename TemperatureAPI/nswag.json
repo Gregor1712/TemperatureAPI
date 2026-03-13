@@ -3,7 +3,7 @@
   "defaultVariables": null,
   "documentGenerator": {
     "aspNetCoreToOpenApi": {
-      "project": "TestProject.csproj",
+      "project": "TemperatureAPI.csproj",
       "documentName": "v1",
       "msBuildProjectExtensionsPath": null,
       "configuration": null,
