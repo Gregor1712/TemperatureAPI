@@ -8,6 +8,8 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using NSwag;
 using NSwag.Generation.Processors.Security;
+using Polly;
+using Polly.Extensions.Http;
 using TemperatureAPI.Data;
 using TemperatureAPI.Entities;
 
@@ -101,6 +103,21 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"))
     .AddPolicy("RequireUserRole", policy => policy.RequireRole("Admin", "User"));
 
+
+
+
+builder.Services.AddHttpClient<IWeatherApiClient, WeatherApiClient>(client =>
+    {
+        var baseUrl = builder.Configuration["WeatherApi:BaseUrl"] ?? "https://nejakepocasie.net";
+        client.BaseAddress = new Uri(baseUrl);
+        client.Timeout = TimeSpan.FromSeconds(10);
+    })
+    .AddPolicyHandler(GetRetryPolicy())
+    .AddPolicyHandler(GetCircuitBreakerPolicy());
+
+
+
+
 var app = builder.Build();
 
 app.UseCors(x => x
@@ -142,6 +159,21 @@ catch (Exception ex)
 }
 
 app.Run();
+
+
+static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+{
+    return HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromMilliseconds(200 * Math.Pow(2, retryAttempt)));
+}
+
+static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
+{
+    return HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
+}
 
 // ctrl+shift+/
 

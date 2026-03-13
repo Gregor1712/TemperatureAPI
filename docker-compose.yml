@@ -1,0 +1,9 @@
+services:
+  fakeweatherapi:
+    build:
+      context: .
+      dockerfile: FakeWeatherApi/Dockerfile
+    ports:
+      - "5100:8080"
+    environment:
+      - ASPNETCORE_URLS=http://+:8080
