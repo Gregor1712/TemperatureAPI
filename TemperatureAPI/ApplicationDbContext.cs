@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TemperatureAPI.Models;
@@ -14,8 +13,6 @@ public class ApplicationDbContext(DbContextOptions options): IdentityDbContext<A
     }
 }
 
-// C:\Users\grego\RiderProjects\TestProject\TestProject> 
 // dotnet ef migrations add Initial
 // dotnet ef database update
-
 // dotnet ef migrations add AddIdentity
