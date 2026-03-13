@@ -9,24 +9,26 @@ var cities = new Dictionary<int, string>
     [4] = "vieden"
 };
 
-int GetTimeSlotSeed(DateTime utcNow)
+// Temperature changes at 9:00 and 16:00 UTC.
+// "morning" slot: 09:00–15:59 → returns "2026-03-13_morning"
+// "evening" slot: 16:00–08:59 (next day) → returns "2026-03-13_evening"
+string GetTimeSlot(DateTime utcNow)
 {
-    var date = utcNow.Date;
-    var dayKey = date.Year * 366 + date.DayOfYear;
-    if (utcNow.Hour >= 16)
-        return dayKey * 2 + 1;
-    if (utcNow.Hour >= 9)
-        return dayKey * 2;
-    // Before 9:00 — use previous day's 16:00 slot
-    return (dayKey - 1) * 2 + 1;
-}
+    if (utcNow.Hour >= 9 && utcNow.Hour < 16)
+        return $"{utcNow:yyyy-MM-dd}_morning";
 
+    // Evening slot: use today's date if 16+, yesterday's if before 9
+    var date = utcNow.Hour >= 16 ? utcNow.Date : utcNow.Date.AddDays(-1);
+    return $"{date:yyyy-MM-dd}_evening";
+}
+    
 app.MapGet("/{cityId:int}", (int cityId) =>
 {
     if (!cities.ContainsKey(cityId))
         return Results.NotFound();
 
-    var seed = GetTimeSlotSeed(DateTime.UtcNow) * 100 + cityId;
+    var slot = GetTimeSlot(DateTime.UtcNow);
+    var seed = (slot + cityId).GetHashCode();
     var random = new Random(seed);
     var temperature = Math.Round((decimal)(random.NextDouble() * 40 - 10), 1);
 

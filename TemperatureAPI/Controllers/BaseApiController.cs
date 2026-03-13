@@ -10,7 +10,7 @@ namespace TemperatureAPI.Controllers;
 [Route("api/[controller]")]
 public class BaseApiController : ControllerBase
 {
-    private readonly IMapper? _mapper;
+    public readonly IMapper? _mapper;
 
     protected BaseApiController()
     { }

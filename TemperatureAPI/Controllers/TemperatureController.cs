@@ -1,18 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
 using TemperatureAPI.DTO;
 using TemperatureAPI.Interfaces;
+using TemperatureAPI.Models;
 
 namespace TemperatureAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class TemperatureController : ControllerBase
+public class TemperatureController : BaseApiController
 {
     private readonly ITemperatureService _temperatureService;
     private readonly ILogger<TemperatureController> _logger;
+    private readonly IUnitOfWork _unit;
 
-    public TemperatureController(ITemperatureService temperatureService, ILogger<TemperatureController> logger)
+    public TemperatureController(IUnitOfWork unit, ITemperatureService temperatureService, ILogger<TemperatureController> logger)
     {
+        _unit = unit;
         _temperatureService = temperatureService;
         _logger = logger;
     }
@@ -30,6 +33,20 @@ public class TemperatureController : ControllerBase
             return NotFound(new { error = $"Temperature for city '{city}' is not available." });
         }
 
+        await InsertHistory(result);
+
         return Ok(result);
+    }
+
+    private async Task InsertHistory(TemperatureDto result)
+    {
+        var history = new TemperatureHistory
+        {
+            City = result.City,
+            TemperatureC = result.TemperatureC,
+            MeasuredAtUtc = result.MeasuredAtUtc
+        };
+        _unit.Repository<TemperatureHistory>().Add(history);
+        await _unit.Complete();
     }
 }
