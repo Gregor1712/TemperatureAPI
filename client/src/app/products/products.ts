@@ -51,8 +51,8 @@ export class ProductsComponent extends SafeUnsubscribeComponent implements OnIni
   filter: FilterParams = {};
   private _sortSub?: Subscription;
 
-  cityOptions = ['bratislava', 'praha'];
-  temperatureCOptions = [10,20,30];
+  cityOptions = ['bratislava', 'praha', 'budapest', 'vieden'];
+  temperatureCOptions = [];
   private loading: boolean = false;
 
   constructor() {

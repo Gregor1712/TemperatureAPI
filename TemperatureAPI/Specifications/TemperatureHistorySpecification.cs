@@ -1,18 +1,19 @@
+using System.Globalization;
 using TemperatureAPI.Models;
 
 namespace TemperatureAPI.Specifications;
 
 public class TemperatureHistorySpecification : BaseSpecification<TemperatureHistory>
 {
-    public TemperatureHistorySpecification(TemperatureHistorySpecParams histortyParams)
+    public TemperatureHistorySpecification(TemperatureHistorySpecParams historyParams)
         : base(x =>
-            (string.IsNullOrEmpty(histortyParams.City) || x.City.ToLower().Contains(histortyParams.City)) &&
-            (!histortyParams.TemperatureC.HasValue || x.TemperatureC == histortyParams.TemperatureC))
+            (string.IsNullOrEmpty(historyParams.City) || x.City.ToLower().Contains(historyParams.City)) &&
+            (!historyParams.TemperatureC.HasValue || x.TemperatureC.ToString().Contains(historyParams.TemperatureC.Value.ToString())))
 
     {
-        ApplyPaging(histortyParams.PageSize * (histortyParams.PageIndex - 1), histortyParams.PageSize);
+        ApplyPaging(historyParams.PageSize * (historyParams.PageIndex - 1), historyParams.PageSize);
 
-        switch (histortyParams.Sort)
+        switch (historyParams.Sort)
         {
             case "cityAsc":
                 AddOrderBy(x => x.City);
