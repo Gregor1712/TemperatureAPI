@@ -1,0 +1,8 @@
+.temperature-result {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  justify-content: center;
+  width: fit-content;
+  margin: 16px auto;
+}
