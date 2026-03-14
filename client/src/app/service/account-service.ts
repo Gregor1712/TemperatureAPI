@@ -1,8 +1,7 @@
 
 import { inject, Injectable, signal } from '@angular/core';
 import { tap } from 'rxjs';
-import {AccountClient, LoginDto, UserDto} from './api-client';
-import {User} from '../shared/models/user';
+import {AccountClient, LoginDto, RegisterDto, UserDto} from './api-client';
 
 @Injectable({
   providedIn: 'root'
@@ -11,19 +10,16 @@ export class AccountService {
   private accountService = inject(AccountClient);
   currentUser = signal<UserDto | null>(null);
 
-  //private baseUrl = environment.apiUrl;
-
-  // register(creds: RegisterCreds) {
-  //   return this.http.post<User>(this.baseUrl + 'account/register', creds,
-  //     { withCredentials: true }).pipe(
-  //       tap(user => {
-  //         if (user) {
-  //           this.setCurrentUser(user);
-  //           this.startTokenRefreshInterval();
-  //         }
-  //       })
-  //     )
-  // }
+  register(creds: RegisterDto) {
+    return this.accountService.register(creds).pipe(
+        tap(user => {
+          if (user) {
+            this.setCurrentUser(user);
+            this.startTokenRefreshInterval();
+          }
+        })
+      )
+  }
 
   login(creds: LoginDto) {
     return this.accountService.login(creds).pipe(
@@ -58,7 +54,6 @@ export class AccountService {
 
   setCurrentUser(user: UserDto) {
     user.roles = this.getRolesFromToken(user);
-    console.log('logedUser:', user);
     this.currentUser.set(user);
   }
 

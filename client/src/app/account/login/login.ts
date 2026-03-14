@@ -1,10 +1,10 @@
 import {Component, inject} from '@angular/core';
-import {FormBuilder, ReactiveFormsModule} from '@angular/forms';
+import {FormBuilder, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatCard} from '@angular/material/card';
-import {MatFormField, MatInput, MatLabel} from '@angular/material/input';
+import {MatError, MatFormField, MatInput, MatLabel} from '@angular/material/input';
 import {MatButton} from '@angular/material/button';
 import {ActivatedRoute, Router} from '@angular/router';
-import {AccountClient, LoginDto, UserDto} from '../../service/api-client';
+import {LoginDto} from '../../service/api-client';
 import {AccountService} from '../../service/account-service';
 
 @Component({
@@ -15,7 +15,8 @@ import {AccountService} from '../../service/account-service';
     MatFormField,
     MatInput,
     MatButton,
-    MatLabel],
+    MatLabel,
+    MatError],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
@@ -25,7 +26,6 @@ export class Login {
   private router = inject(Router);
   private activatedRoute = inject(ActivatedRoute);
   returnUrl = '/temperatureHistory';
-  //userAccount: UserDto = new UserDto();
 
   constructor() {
     const url = this.activatedRoute.snapshot.queryParams['returnUrl'];
@@ -33,19 +33,16 @@ export class Login {
   }
 
   loginForm = this.fb.group({
-    email: this.fb.control<string | null>(null),
-    password: this.fb.control<string | null>(null)
+    email: this.fb.control<string | null>(null, [Validators.required, Validators.email]),
+    password: this.fb.control<string | null>(null, Validators.required)
   })
 
   onSubmit() {
-
     const form = this.loginForm.getRawValue();
-
     const login = new LoginDto({
       email: form.email ?? undefined,
       password: form.password ?? undefined
     });
-
 
     this.accountService.login(login).subscribe({
       next: () => {
@@ -54,22 +51,5 @@ export class Login {
       },
       error: () => this.router.navigate(['/'])
     });
-
-    //this.accountService.login(login);
-
-    // if(this.accountService.currentUser()?.token !== undefined ){
-    //   console.log('currentUser signal:', this.accountService.currentUser());
-    //   this.router.navigateByUrl(this.returnUrl);
-    // }else{
-    //   console.log('login failed:', this.accountService.currentUser());
-    //   this.router.navigate(['/']);
-    // }
-
-
-
-    // {
-    //   this.router.navigateByUrl(this.returnUrl);
-    // }
-
   }
 }

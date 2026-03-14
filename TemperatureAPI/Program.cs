@@ -14,6 +14,7 @@ using Polly;
 using Polly.Extensions.Http;
 using TemperatureAPI.Data;
 using TemperatureAPI.Entities;
+using TemperatureAPI.Middleware;
 
 var logger = LogManager.Setup().LoadConfigurationFromFile("nlog.config").GetCurrentClassLogger();
 
@@ -129,6 +130,8 @@ builder.Services.AddHttpClient<IWeatherApiClient, WeatherApiClient>(client =>
 
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseCors(x => x
     .AllowAnyHeader()

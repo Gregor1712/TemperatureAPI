@@ -17,9 +17,6 @@ import {FilterParams} from '../shared/models/FilterParams';
 import {finalize, of, Subscription, switchMap, takeUntil, tap} from 'rxjs';
 import {CommonModule} from '@angular/common';
 import {SafeUnsubscribeComponent} from '../shared/abstract/SafeUnsubscribeComponent';
-import {MatDialog} from '@angular/material/dialog';
-import {ErrorDialogComponent} from '../shared/components/error-dialog/error-dialog.component';
-import {getErrorMessage} from '../shared/utils/error-message.util';
 
 @Component({
   selector: 'app-temperatureHistory',
@@ -41,7 +38,6 @@ import {getErrorMessage} from '../shared/utils/error-message.util';
 })
 export class TemperatureHistoryComponent extends SafeUnsubscribeComponent implements OnInit, AfterViewInit, OnDestroy {
   private historyClient = inject(TemperatureHistoryClient);
-  private dialog = inject(MatDialog);
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   displayedColumns: string[] = ['city', 'temperatureC', 'measuredAtUtc'];
@@ -100,13 +96,6 @@ export class TemperatureHistoryComponent extends SafeUnsubscribeComponent implem
       },
       error: (err: unknown) => {
         console.error(err);
-        this.dialog.open(ErrorDialogComponent, {
-          width: '420px',
-          data: {
-            title: 'Unable to load temperatureHistory',
-            message: getErrorMessage(err)
-          }
-        });
       }
     });
   }
