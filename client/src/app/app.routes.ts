@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './home/home';
-import {TemperatureHistoryComponent} from './temperatureHistory/temperatureHistory';
+import { TemperatureHistoryComponent } from './temperatureHistory/temperatureHistory';
 import { Login } from './account/login/login';
 import { Register } from './account/register/register';
 

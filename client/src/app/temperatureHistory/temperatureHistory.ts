@@ -111,41 +111,41 @@ export class TemperatureHistoryComponent extends SafeUnsubscribeComponent implem
     });
   }
 
-  onInsertPoplatok() {
-    const search = undefined;
-    const pageIndex = (this.paginator?.pageIndex ?? 0) + 1;
-    const pageSize = this.paginator?.pageSize ?? 10;
-
-    const sort = (this.sort && this.sort.direction)
-      ? `${this.sort.active}${this.sort.direction === 'desc' ? 'Desc' : 'Asc'}`
-      : undefined;
-
-    this.loading = true;
-
-    this.historyClient.getTemperatureHistory(
-      this.filter?.city,
-      this.filter?.temperatureC,
-      sort,
-      search,
-      pageIndex,
-      pageSize
-    ).pipe(
-      tap((result: PaginationOfTemperatureHistoryDto) => {
-        if (result?.data) {
-          this.dataSource.data = result.data;
-          this.temperatureHistory = result;
-        }
-      }),
-      finalize(() => this.loading = false),
-      takeUntil(this.unsubscribe$)
-    ).subscribe({
-      error: (err) => {
-        // Handle your error here
-        console.error(err);
-        // SwalUtils.createOrAddToQueueDefault('Error', 'Message', 'error');
-      }
-    });
-  }
+  // onInsertPoplatok() {
+  //   const search = undefined;
+  //   const pageIndex = (this.paginator?.pageIndex ?? 0) + 1;
+  //   const pageSize = this.paginator?.pageSize ?? 10;
+  //
+  //   const sort = (this.sort && this.sort.direction)
+  //     ? `${this.sort.active}${this.sort.direction === 'desc' ? 'Desc' : 'Asc'}`
+  //     : undefined;
+  //
+  //   this.loading = true;
+  //
+  //   this.historyClient.getTemperatureHistory(
+  //     this.filter?.city,
+  //     this.filter?.temperatureC,
+  //     sort,
+  //     search,
+  //     pageIndex,
+  //     pageSize
+  //   ).pipe(
+  //     tap((result: PaginationOfTemperatureHistoryDto) => {
+  //       if (result?.data) {
+  //         this.dataSource.data = result.data;
+  //         this.temperatureHistory = result;
+  //       }
+  //     }),
+  //     finalize(() => this.loading = false),
+  //     takeUntil(this.unsubscribe$)
+  //   ).subscribe({
+  //     error: (err) => {
+  //       // Handle your error here
+  //       console.error(err);
+  //       // SwalUtils.createOrAddToQueueDefault('Error', 'Message', 'error');
+  //     }
+  //   });
+  // }
 
   override ngOnDestroy(): void {
     this._sortSub?.unsubscribe();
