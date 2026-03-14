@@ -11,7 +11,7 @@ namespace TemperatureAPI.Controllers;
 
 public class TemperatureHistoryController(IUnitOfWork unit, IMapper mapper) : BaseApiController(mapper)
 {
-    [Authorize(Policy = "RequireAdminRole")]
+    [Authorize(Policy = "RequireUserRole")]
     [HttpGet]
     public async Task<ActionResult<Pagination<TemperatureHistoryDto>>> GetTemperatureHistory([FromQuery] TemperatureHistorySpecParams historyParams)
     {
@@ -19,20 +19,4 @@ public class TemperatureHistoryController(IUnitOfWork unit, IMapper mapper) : Ba
         return await CreatePagedResultDto<TemperatureHistory, TemperatureHistoryDto>(
             unit.Repository<TemperatureHistory>(), spec, historyParams.PageIndex, historyParams.PageSize);
     }
-    
-    //[Cached(100000)]
-    // [HttpGet]
-    // public async Task<ActionResult<Pagination<CpuDBO>>> GetProducts([FromQuery]ProductSpecParams productParams)
-    // {
-    //     var spec = new ProductSpecification(productParams);
-    //     return await CreatePagedResult(unit.Repository<CpuDBO>(), spec, productParams.PageIndex, productParams.PageSize);
-    // } 
-    
-//     [HttpGet]
-//     public async Task<ActionResult<Pagination<CpuDTO>>> GetProducts([FromQuery] ProductSpecParams productParams)
-//     {
-//         var spec = new ProductSpecification(productParams);
-//         return await CreatePagedResultDto<CpuDBO, CpuDTO>(unit.Repository<CpuDBO>(), spec, productParams.PageIndex, productParams.PageSize);
-//     } 
-
 }

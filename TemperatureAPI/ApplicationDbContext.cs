@@ -13,6 +13,6 @@ public class ApplicationDbContext(DbContextOptions options): IdentityDbContext<A
     }
 }
 
+// help:
 // dotnet ef migrations add Initial
 // dotnet ef database update
-// dotnet ef migrations add AddIdentity

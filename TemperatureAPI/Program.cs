@@ -34,11 +34,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddSingleton<ITemperatureService, TemperatureService>();
-
 builder.Services.AddCors();
-
 builder.Services.AddScoped<ITokenService, TokenService>();
-
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 
 builder.Services.AddControllers()
@@ -46,7 +43,6 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
-
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -97,14 +93,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             OnMessageReceived = context =>
             {
                 var accessToken = context.Request.Query["access_token"];
-
-                var path = context.HttpContext.Request.Path;
-                //if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
                 if (!string.IsNullOrEmpty(accessToken))
                 {
                     context.Token = accessToken;
                 }
-
                 return Task.CompletedTask;
             }
         };
@@ -114,9 +106,6 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"))
     .AddPolicy("RequireUserRole", policy => policy.RequireRole("Admin", "User"));
 
-
-
-
 builder.Services.AddHttpClient<IWeatherApiClient, WeatherApiClient>(client =>
     {
         var baseUrl = builder.Configuration["WeatherApi:BaseUrl"] ?? "https://nejakepocasie.net";
@@ -125,9 +114,6 @@ builder.Services.AddHttpClient<IWeatherApiClient, WeatherApiClient>(client =>
     })
     .AddPolicyHandler(GetRetryPolicy())
     .AddPolicyHandler(GetCircuitBreakerPolicy());
-
-
-
 
 var app = builder.Build();
 
@@ -147,11 +133,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
-//app.UseDefaultFiles();
-//app.UseStaticFiles();
 app.UseHttpsRedirection();
-//app.UseCors("AllowAngularApp");
-
 app.MapControllers();
 
 using var scope = app.Services.CreateScope();
@@ -162,7 +144,6 @@ try
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     await context.Database.MigrateAsync();
-    //await context.Connections.ExecuteDeleteAsync();
     await SeedUsers.SeedUsersData(userManager, roleManager);
 }
 catch (Exception ex)
@@ -196,23 +177,4 @@ static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
     return HttpPolicyExtensions
         .HandleTransientHttpError()
         .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
-}
-
-// ctrl+shift+/
-
-/*# Install EF Core tools (if not already installed)
-dotnet tool install --global dotnet-ef
-
-# Add migration
-dotnet ef migrations add InitialCreate
-
-# Update database
-    dotnet ef database update
-
-# If you need to remove the last migration
-    dotnet ef migrations remove*/
-    
-    
-// dotnet ef migrations add JwtAuthTables   // creates migration files
-// dotnet ef database update                 // applies them
-    
+} 

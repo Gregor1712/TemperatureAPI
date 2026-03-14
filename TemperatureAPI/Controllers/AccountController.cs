@@ -1,4 +1,3 @@
-using AutoMapper.Execution;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -12,22 +11,14 @@ namespace TemperatureAPI.Controllers;
 
 public class AccountController(UserManager<AppUser> userManager, ITokenService tokenService) : BaseApiController
 {
-    [HttpPost("register")] // api/account/register
+    [HttpPost("register")] 
     public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
     {
         var user = new AppUser
         {
             DisplayName = registerDto.DisplayName,
             Email = registerDto.Email,
-            UserName = registerDto.Email,
-            // Member = new Member
-            // {
-            //     DisplayName = registerDto.DisplayName,
-            //     Gender = registerDto.Gender,
-            //     City = registerDto.City,
-            //     Country = registerDto.Country,
-            //     DateOfBirth = registerDto.DateOfBirth
-            // }
+            UserName = registerDto.Email
         };
 
         var result = await userManager.CreateAsync(user, registerDto.Password);
@@ -38,12 +29,10 @@ public class AccountController(UserManager<AppUser> userManager, ITokenService t
             {
                 ModelState.AddModelError("identity", error.Description);
             }
-
             return ValidationProblem();
         }
 
         await userManager.AddToRoleAsync(user, "User");
-
         await SetRefreshTokenCookie(user);
 
         return await user.ToDto(tokenService);
@@ -53,13 +42,9 @@ public class AccountController(UserManager<AppUser> userManager, ITokenService t
     public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
     {
         var user = await userManager.FindByEmailAsync(loginDto.Email);
-
         if (user == null) return Unauthorized("Invalid email address");
-
         var result = await userManager.CheckPasswordAsync(user, loginDto.Password);
-
         if (!result) return Unauthorized("Invalid password");
-
         await SetRefreshTokenCookie(user);
 
         return await user.ToDto(tokenService);
@@ -76,7 +61,6 @@ public class AccountController(UserManager<AppUser> userManager, ITokenService t
                 && x.RefreshTokenExpiry > DateTime.UtcNow);
 
         if (user == null) return Unauthorized();
-
         await SetRefreshTokenCookie(user);
 
         return await user.ToDto(tokenService);
