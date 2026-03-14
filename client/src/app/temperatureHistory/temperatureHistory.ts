@@ -22,7 +22,7 @@ import {ErrorDialogComponent} from '../shared/components/error-dialog/error-dial
 import {getErrorMessage} from '../shared/utils/error-message.util';
 
 @Component({
-  selector: 'app-products',
+  selector: 'app-temperatureHistory',
   standalone: true,
   imports: [
     CommonModule,
@@ -36,10 +36,10 @@ import {getErrorMessage} from '../shared/utils/error-message.util';
     MatSortModule,
     MatPaginatorModule
   ],
-  templateUrl: './products.html',
-  styleUrls: ['./products.css'],
+  templateUrl: './temperatureHistory.html',
+  styleUrls: ['./temperatureHistory.css'],
 })
-export class ProductsComponent extends SafeUnsubscribeComponent implements OnInit, AfterViewInit, OnDestroy {
+export class TemperatureHistoryComponent extends SafeUnsubscribeComponent implements OnInit, AfterViewInit, OnDestroy {
   private historyClient = inject(TemperatureHistoryClient);
   private dialog = inject(MatDialog);
   @ViewChild(MatSort) sort!: MatSort;
@@ -103,7 +103,7 @@ export class ProductsComponent extends SafeUnsubscribeComponent implements OnIni
         this.dialog.open(ErrorDialogComponent, {
           width: '420px',
           data: {
-            title: 'Unable to load products',
+            title: 'Unable to load temperatureHistory',
             message: getErrorMessage(err)
           }
         });

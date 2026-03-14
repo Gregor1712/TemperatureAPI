@@ -24,7 +24,7 @@ export class Login {
   private accountService = inject(AccountService);
   private router = inject(Router);
   private activatedRoute = inject(ActivatedRoute);
-  returnUrl = '/products';
+  returnUrl = '/temperatureHistory';
   //userAccount: UserDto = new UserDto();
 
   constructor() {
