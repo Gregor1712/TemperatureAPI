@@ -1,5 +1,9 @@
 import {Component, inject, OnInit, ViewChild, AfterViewInit, OnDestroy} from '@angular/core';
-import {CpuDTO, PaginationOfCpuDTO, ProductsClient} from '../service/api-client';
+import {
+  PaginationOfTemperatureHistoryDto,
+  TemperatureHistoryClient,
+  TemperatureHistoryDto
+} from '../service/api-client';
 import {MatTableDataSource} from '@angular/material/table';
 import {MatTableModule} from '@angular/material/table';
 import {MatInputModule} from '@angular/material/input';
@@ -36,26 +40,24 @@ import {getErrorMessage} from '../shared/utils/error-message.util';
   styleUrls: ['./products.css'],
 })
 export class ProductsComponent extends SafeUnsubscribeComponent implements OnInit, AfterViewInit, OnDestroy {
-  private shopService = inject(ProductsClient);
+  private historyClient = inject(TemperatureHistoryClient);
   private dialog = inject(MatDialog);
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
-  displayedColumns: string[] = ['name', 'socket', 'cores'];
-  filterColumns: string[] = ['name-filter', 'socket-filter', 'cores-filter'];
-  products?: PaginationOfCpuDTO;
-  dataSource: MatTableDataSource<CpuDTO>;
-  //totalCount = 0;
+  displayedColumns: string[] = ['city', 'temperatureC', 'measuredAtUtc'];
+  filterColumns: string[] = ['city-filter', 'temperatureC-filter'];
+  temperatureHistory?: PaginationOfTemperatureHistoryDto;
+  dataSource: MatTableDataSource<TemperatureHistoryDto>;
   filter: FilterParams = {};
   private _sortSub?: Subscription;
 
-  nameOptions = ['AMD Ryzen 5 3600', 'AMD Ryzen 7 5800X', 'Intel Core i9-11900K'];
-  socketOptions = ['LGA1700', 'AM4', 'AM5'];
-  coresOptions = [8,12,16];
+  cityOptions = ['bratislava', 'praha'];
+  temperatureCOptions = [10,20,30];
   private loading: boolean = false;
 
   constructor() {
     super();
-    this.dataSource = new MatTableDataSource<CpuDTO>([]);
+    this.dataSource = new MatTableDataSource<TemperatureHistoryDto>([]);
   }
 
   ngOnInit() {}
@@ -63,9 +65,9 @@ export class ProductsComponent extends SafeUnsubscribeComponent implements OnIni
   ngAfterViewInit() {
     this.dataSource.sort = this.sort;
     this.paginator.pageIndex = 0; // reset to first page on sort
-    this.getProducts();
+    this.getTemperatureHistory();
     this._sortSub = this.sort.sortChange.subscribe(() => {
-      this.getProducts();
+      this.getTemperatureHistory();
     });
   }
 
@@ -74,15 +76,14 @@ export class ProductsComponent extends SafeUnsubscribeComponent implements OnIni
     if (!val) {
       this.filter[column] = undefined;
     } else {
-      this.filter[column] = (column === 'cores') ? Number(val) : val;
+      this.filter[column] = (column === 'temperatureC') ? Number(val) : val;
     }
-    this.getProducts();
+    this.getTemperatureHistory();
   }
 
-  getProducts() {
+  getTemperatureHistory() {
 
     const search = undefined;
-    // paginator.pageIndex is 0-based; backend expects 1-based page index -> add 1
     const pageIndex = (this.paginator?.pageIndex ?? 0) + 1;
     const pageSize = this.paginator?.pageSize ?? 10;
 
@@ -90,12 +91,11 @@ export class ProductsComponent extends SafeUnsubscribeComponent implements OnIni
       ? `${this.sort.active}${this.sort.direction === 'desc' ? 'Desc' : 'Asc'}`
       : undefined;
 
-    this.shopService.getProducts(this.filter?.name, this.filter?.socket, this.filter?.cores, sort, search, pageIndex, pageSize).subscribe({
-      next: (response: PaginationOfCpuDTO) => {
+    this.historyClient.getTemperatureHistory(this.filter?.city, this.filter?.temperatureC, sort, search, pageIndex, pageSize).subscribe({
+      next: (response: PaginationOfTemperatureHistoryDto) => {
         if (response?.data) {
           this.dataSource.data = response?.data ?? [];
-          //this.totalCount = response?.count ?? 0; // <-- use the real total
-          this.products = response;
+          this.temperatureHistory = response;
         }
       },
       error: (err: unknown) => {
@@ -122,25 +122,21 @@ export class ProductsComponent extends SafeUnsubscribeComponent implements OnIni
 
     this.loading = true;
 
-    this.shopService.getProducts(
-      this.filter?.name,
-      this.filter?.socket,
-      this.filter?.cores,
+    this.historyClient.getTemperatureHistory(
+      this.filter?.city,
+      this.filter?.temperatureC,
       sort,
       search,
       pageIndex,
       pageSize
     ).pipe(
-      // Use tap for side effects (assigning data)
-      tap((result: PaginationOfCpuDTO) => {
+      tap((result: PaginationOfTemperatureHistoryDto) => {
         if (result?.data) {
           this.dataSource.data = result.data;
-          this.products = result;
+          this.temperatureHistory = result;
         }
       }),
-      // Use finalize to ensure loading is turned off even on error
       finalize(() => this.loading = false),
-      // Unsubscribe is important to prevent memory leaks!
       takeUntil(this.unsubscribe$)
     ).subscribe({
       error: (err) => {
@@ -151,44 +147,12 @@ export class ProductsComponent extends SafeUnsubscribeComponent implements OnIni
     });
   }
 
-  // onInsertPoplatok() {
-  //
-  //   const search = undefined;
-  //   // paginator.pageIndex is 0-based; backend expects 1-based page index -> add 1
-  //   const pageIndex = (this.paginator?.pageIndex ?? 0) + 1;
-  //   const pageSize = this.paginator?.pageSize ?? 10;
-  //
-  //   const sort = (this.sort && this.sort.direction)
-  //     ? `${this.sort.active}${this.sort.direction === 'desc' ? 'Desc' : 'Asc'}`
-  //     : undefined;
-  //
-  //   this.loading = true;
-  //   //poplatok.idPacienta = this.idPacienta;
-  //
-  //   this.shopService.getProducts(this.filter?.name, this.filter?.socket, this.filter?.cores, sort, search, pageIndex, pageSize).pipe(
-  //     switchMap((result: PaginationOfCpuDTO) => {
-  //       if (result?.data) {
-  //         this.dataSource.data = result?.data ?? [];
-  //         this.products = result;
-  //       } else {
-  //         //SwalUtils.createOrAddToQueueDefault('Poplatok', 'Nepodarilo sa vložiť Poplatok.', 'error');
-  //         //return of(null);
-  //       }
-  //     }),
-  //     finalize(() => this.loading = false),
-  //     //takeUntil(this.unsubscribe$)
-  //   ).subscribe();
-  // }
-
-
-
-
   override ngOnDestroy(): void {
     this._sortSub?.unsubscribe();
   }
 
   protected pageChange(event: PageEvent) {
-    this.getProducts();
+    this.getTemperatureHistory();
   }
 
 }

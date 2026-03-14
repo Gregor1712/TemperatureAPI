@@ -310,14 +310,12 @@ export class TemperatureHistoryClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    getProducts(city?: string | null | undefined, temperatureC?: number | null | undefined, measuredAtUtc?: string | null | undefined, sort?: string | null | undefined, search?: string | undefined, pageIndex?: number | undefined, pageSize?: number | undefined): Observable<PaginationOfTemperatureHistoryDto> {
+    getTemperatureHistory(city?: string | null | undefined, temperatureC?: number | null | undefined, sort?: string | null | undefined, search?: string | undefined, pageIndex?: number | undefined, pageSize?: number | undefined): Observable<PaginationOfTemperatureHistoryDto> {
         let url_ = this.baseUrl + "/api/TemperatureHistory?";
         if (city !== undefined && city !== null)
             url_ += "City=" + encodeURIComponent("" + city) + "&";
         if (temperatureC !== undefined && temperatureC !== null)
             url_ += "TemperatureC=" + encodeURIComponent("" + temperatureC) + "&";
-        if (measuredAtUtc !== undefined && measuredAtUtc !== null)
-            url_ += "MeasuredAtUtc=" + encodeURIComponent("" + measuredAtUtc) + "&";
         if (sort !== undefined && sort !== null)
             url_ += "Sort=" + encodeURIComponent("" + sort) + "&";
         if (search === null)
@@ -343,11 +341,11 @@ export class TemperatureHistoryClient {
         };
 
         return this.http.request("get", url_, options_).pipe(_observableMergeMap((response_ : any) => {
-            return this.processGetProducts(response_);
+            return this.processGetTemperatureHistory(response_);
         })).pipe(_observableCatch((response_: any) => {
             if (response_ instanceof HttpResponseBase) {
                 try {
-                    return this.processGetProducts(response_ as any);
+                    return this.processGetTemperatureHistory(response_ as any);
                 } catch (e) {
                     return _observableThrow(e) as any as Observable<PaginationOfTemperatureHistoryDto>;
                 }
@@ -356,7 +354,7 @@ export class TemperatureHistoryClient {
         }));
     }
 
-    protected processGetProducts(response: HttpResponseBase): Observable<PaginationOfTemperatureHistoryDto> {
+    protected processGetTemperatureHistory(response: HttpResponseBase): Observable<PaginationOfTemperatureHistoryDto> {
         const status = response.status;
         const responseBlob =
             response instanceof HttpResponse ? response.body :

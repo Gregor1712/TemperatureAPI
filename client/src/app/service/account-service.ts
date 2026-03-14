@@ -9,7 +9,7 @@ import {User} from '../shared/models/user';
 })
 export class AccountService {
   private accountService = inject(AccountClient);
-  currentUser = signal<User | null>(null);
+  currentUser = signal<UserDto | null>(null);
 
   //private baseUrl = environment.apiUrl;
 

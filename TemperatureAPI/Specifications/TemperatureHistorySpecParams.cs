@@ -15,13 +15,6 @@ public class TemperatureHistorySpecParams: PagingParams
         get => _temperatureC;
         set => _temperatureC = value;
     }
-    
-    private DateTime? _measuredAtUtc;
-    public DateTime? MeasuredAtUtc
-    {
-        get => _measuredAtUtc;
-        set => _measuredAtUtc = value;
-    }
 
     public string? Sort { get; set; }
     

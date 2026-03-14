@@ -13,7 +13,7 @@ public class TemperatureHistoryController(IUnitOfWork unit, IMapper mapper) : Ba
 {
     [Authorize(Policy = "RequireAdminRole")]
     [HttpGet]
-    public async Task<ActionResult<Pagination<TemperatureHistoryDto>>> GetProducts([FromQuery] TemperatureHistorySpecParams historyParams)
+    public async Task<ActionResult<Pagination<TemperatureHistoryDto>>> GetTemperatureHistory([FromQuery] TemperatureHistorySpecParams historyParams)
     {
         var spec = new TemperatureHistorySpecification(historyParams);
         return await CreatePagedResultDto<TemperatureHistory, TemperatureHistoryDto>(

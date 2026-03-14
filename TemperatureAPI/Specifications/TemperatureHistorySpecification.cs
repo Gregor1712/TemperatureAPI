@@ -7,8 +7,7 @@ public class TemperatureHistorySpecification : BaseSpecification<TemperatureHist
     public TemperatureHistorySpecification(TemperatureHistorySpecParams histortyParams)
         : base(x =>
             (string.IsNullOrEmpty(histortyParams.City) || x.City.ToLower().Contains(histortyParams.City)) &&
-            (!histortyParams.TemperatureC.HasValue || x.TemperatureC == histortyParams.TemperatureC) &&
-            (!histortyParams.MeasuredAtUtc.HasValue || x.MeasuredAtUtc == histortyParams.MeasuredAtUtc))
+            (!histortyParams.TemperatureC.HasValue || x.TemperatureC == histortyParams.TemperatureC))
 
     {
         ApplyPaging(histortyParams.PageSize * (histortyParams.PageIndex - 1), histortyParams.PageSize);
